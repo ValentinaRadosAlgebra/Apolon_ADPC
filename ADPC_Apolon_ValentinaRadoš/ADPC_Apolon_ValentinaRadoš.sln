@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35027.167
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADPC_Apolon", "ADPC_Apolon\ADPC_Apolon.csproj", "{39ED675A-F3FB-421C-8CFE-49F692A65B5D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrations", "Migrations\Migrations.csproj", "{4D72B0A3-2A91-4212-A7FF-A7F1347AE72F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apolon_ADPC", "Apolon_ADPC\Apolon_ADPC.csproj", "{A669EFE9-1450-465A-B452-2A46766B0FDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{39ED675A-F3FB-421C-8CFE-49F692A65B5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{39ED675A-F3FB-421C-8CFE-49F692A65B5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{39ED675A-F3FB-421C-8CFE-49F692A65B5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{39ED675A-F3FB-421C-8CFE-49F692A65B5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D72B0A3-2A91-4212-A7FF-A7F1347AE72F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D72B0A3-2A91-4212-A7FF-A7F1347AE72F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D72B0A3-2A91-4212-A7FF-A7F1347AE72F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D72B0A3-2A91-4212-A7FF-A7F1347AE72F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A669EFE9-1450-465A-B452-2A46766B0FDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A669EFE9-1450-465A-B452-2A46766B0FDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A669EFE9-1450-465A-B452-2A46766B0FDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A669EFE9-1450-465A-B452-2A46766B0FDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

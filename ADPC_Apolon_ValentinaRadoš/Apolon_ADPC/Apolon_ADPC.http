@@ -1,0 +1,6 @@
+@Apolon_ADPC_HostAddress = http://localhost:5047
+
+GET {{Apolon_ADPC_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
