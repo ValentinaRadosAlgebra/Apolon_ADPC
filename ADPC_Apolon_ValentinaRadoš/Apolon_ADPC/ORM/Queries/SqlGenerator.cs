@@ -59,12 +59,15 @@ namespace Apolon_ADPC.ORM.Queries
 
         private static string MapType(Type t)
         {
-            if (t == typeof(string)) return "VARCHAR(255)";
-            if (t == typeof(int)) return "INT";
-            if (t == typeof(decimal)) return "DECIMAL";
-            if (t == typeof(float)) return "FLOAT";
-            if (t == typeof(DateTime)) return "TIMESTAMP";
-            if (t.IsEnum) return "INT";
+            var underlyingType = Nullable.GetUnderlyingType(t) ?? t;
+
+            if (underlyingType == typeof(string)) return "VARCHAR(255)";
+            if (underlyingType == typeof(int)) return "INT";
+            if (underlyingType == typeof(decimal)) return "DECIMAL";
+            if (underlyingType == typeof(float)) return "FLOAT";
+            if (underlyingType == typeof(DateTime)) return "TIMESTAMP";
+            if (underlyingType == typeof(DateOnly)) return "DATE";
+            if (underlyingType.IsEnum) return "INT";
 
             throw new Exception($"Unsupported type {t}");
         }

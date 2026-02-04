@@ -6,6 +6,7 @@ namespace Apolon_ADPC.Models
     public class Medication
     {
         [PrimaryKey]
+        [Column("id")]
         public int Id { get; set; }
 
         [Column("name", IsNullable = false)]

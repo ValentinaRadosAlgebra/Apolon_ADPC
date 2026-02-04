@@ -8,6 +8,7 @@ namespace Apolon_ADPC.Models
     public class Checkups
     {
         [PrimaryKey]
+        [Column("id")]
         public int Id { get; set; }
 
         [ForeignKey("patients")]
@@ -35,13 +36,14 @@ namespace Apolon_ADPC.Models
     {
         public int PatientId { get; set; }
         public CheckupType Type { get; set; }
-        public DateTime CheckupDate { get; set; }
+        //public DateTime CheckupDate { get; set; }
         public string? Notes { get; set; }
         public string? Diagnosis { get; set; }
     }
 
     public enum CheckupType
     {
+        PREVIOUS, //for update logic
         GP,
         BLOOD,
         [Display(Name = "X-RAY")]

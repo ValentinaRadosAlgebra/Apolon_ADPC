@@ -14,12 +14,8 @@ namespace Migrations
             {
                 Name = "001_initial_schema",
                 UpSql = """
-                    CREATE SEQUENCE IF NOT EXISTS hospital_number_seq START 10000;
-
                     CREATE TABLE IF NOT EXISTS patients (
                         id SERIAL PRIMARY KEY,
-                        hospital_number VARCHAR(20) NOT NULL
-                            DEFAULT nextval('hospital_number_seq')::text UNIQUE,
                         name VARCHAR(255) NOT NULL,
                         surname VARCHAR(255) NOT NULL,
                         date_of_birth TIMESTAMP NOT NULL,
@@ -67,7 +63,6 @@ namespace Migrations
                     DROP TABLE IF EXISTS checkups;
                     DROP TABLE IF EXISTS medications;
                     DROP TABLE IF EXISTS patients;
-                    DROP SEQUENCE IF EXISTS hospital_number_seq;
                     DROP TABLE IF EXISTS migrations;
                 """
             }

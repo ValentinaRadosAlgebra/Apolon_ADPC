@@ -6,6 +6,7 @@ namespace Apolon_ADPC.Models
     public class Prescription
     {
         [PrimaryKey]
+        [Column("id")]
         public int Id { get; set; }
 
         [ForeignKey("patients")]
@@ -36,7 +37,7 @@ namespace Apolon_ADPC.Models
         public int MedicationId { get; set; }
 
         public string Dosage { get; set; }
-        public DateTime StartDate { get; set; }
+        //public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }
 }

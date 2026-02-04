@@ -50,21 +50,47 @@ namespace Apolon_ADPC.ORM.Core
             var names = columns.Select(c => c.Column.Name);
             var parms = columns.Select(c => "@" + c.Column.Name);
 
+            // Add RETURNING id to get generated PK
             var sql = $"""
-                INSERT INTO {_table} ({string.Join(",", names)})
-                VALUES ({string.Join(",", parms)})
-            """;
+                    INSERT INTO {_table} ({string.Join(",", names)})
+                    VALUES ({string.Join(",", parms)})
+                    RETURNING id
+                """;
 
             using var cmd = new NpgsqlCommand(sql, _connection);
 
             foreach (var c in columns)
             {
-                var value = c.Property.GetValue(entity) ?? DBNull.Value;
+                var rawValue = c.Property.GetValue(entity);
+
+                object value;
+                if (rawValue == null)
+                {
+                    value = DBNull.Value;
+                }
+                else if (c.Property.PropertyType.IsEnum)
+                {
+                    value = (int)rawValue; // enum → int
+                }
+                else
+                {
+                    value = rawValue;
+                }
+
                 cmd.Parameters.AddWithValue("@" + c.Column.Name, value);
             }
 
-            cmd.ExecuteNonQuery();
+            // Get the generated id
+            var idObj = cmd.ExecuteScalar();
+            if (idObj == null) throw new Exception("Failed to retrieve generated ID");
+
+            var pkProp = typeof(T).GetProperties()
+                .FirstOrDefault(p => p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
+
+            if (pkProp != null)
+                pkProp.SetValue(entity, Convert.ToInt32(idObj));
         }
+
 
         public void Update(int id, T entity)
         {
@@ -82,7 +108,23 @@ namespace Apolon_ADPC.ORM.Core
 
             foreach (var c in columns)
             {
-                var value = c.Property.GetValue(entity) ?? DBNull.Value;
+                var rawValue = c.Property.GetValue(entity);
+
+                object value;
+
+                if (rawValue == null)
+                {
+                    value = DBNull.Value;
+                }
+                else if (rawValue.GetType().IsEnum)
+                {
+                    value = (int)rawValue; // 🔹 enum → int
+                }
+                else
+                {
+                    value = rawValue;
+                }
+
                 cmd.Parameters.AddWithValue("@" + c.Column.Name, value);
             }
 
@@ -104,6 +146,14 @@ namespace Apolon_ADPC.ORM.Core
 
             foreach (var prop in typeof(T).GetProperties())
             {
+                // 🔹 PRIMARY KEY
+                if (prop.GetCustomAttribute<PrimaryKeyAttribute>() != null)
+                {
+                    prop.SetValue(entity, Convert.ToInt32(reader["id"]));
+                    continue;
+                }
+
+                // 🔹 NORMAL COLUMN
                 var col = prop.GetCustomAttribute<ColumnAttribute>();
                 if (col == null) continue;
 
@@ -118,6 +168,7 @@ namespace Apolon_ADPC.ORM.Core
 
             return entity;
         }
+
     }
 
 }

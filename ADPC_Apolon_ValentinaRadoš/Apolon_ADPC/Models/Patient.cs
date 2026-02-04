@@ -6,6 +6,7 @@ namespace Apolon_ADPC.Models
     public class Patient
     {
         [PrimaryKey]
+        [Column("id")]
         public int Id { get; set; }
 
         [Column("name")]
@@ -18,10 +19,7 @@ namespace Apolon_ADPC.Models
         public DateTime DateOfBirth { get; set; }
 
         [Column("gender")]
-        public Gender Gender { get; set; }
-
-        [Column("hospital_number", IsUnique = true, IsNullable = false)]
-        public string HospitalNumber { get; private set; }
+        public string Gender { get; set; }
 
         [Column("address")]
         public string Address { get; set; }
@@ -48,15 +46,11 @@ namespace Apolon_ADPC.Models
         public string Name { get; set; }
         public string Surname { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public Gender Gender { get; set; }
-        public string HospitalNumber { get; set; }
-        public string Adress { get; set; }
+        public string Gender { get; set; }
+        public string Address { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
         public string? EmergencyContact { get; set; }
-        public DateTime ProfileCreated { get; set; }
     }
-
-    public enum Gender { F, M }
 }
 
