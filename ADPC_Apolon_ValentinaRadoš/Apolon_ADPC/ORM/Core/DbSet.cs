@@ -1,6 +1,8 @@
 ﻿using Apolon_ADPC.ORM.Attributes;
 using Apolon_ADPC.ORM.Mapping;
+using Apolon_ADPC.ORM.Queries;
 using Npgsql;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Apolon_ADPC.ORM.Core
@@ -10,9 +12,18 @@ namespace Apolon_ADPC.ORM.Core
         private readonly NpgsqlConnection _connection;
         private readonly string _table;
 
-        public DbSet(NpgsqlConnection connection)
+        //public DbSet(NpgsqlConnection connection)
+        //{
+        //    _connection = connection;
+        //    _table = EntityMapper.GetTableName(typeof(T));
+        //}
+
+        private readonly UnitOfWork _uow;
+
+        public DbSet(NpgsqlConnection connection, UnitOfWork uow)
         {
             _connection = connection;
+            _uow = uow;
             _table = EntityMapper.GetTableName(typeof(T));
         }
 
@@ -28,9 +39,19 @@ namespace Apolon_ADPC.ORM.Core
             var result = new List<T>();
 
             while (reader.Read())
-                result.Add(Map(reader));
+            {
+                var entity = Map(reader);
+                _uow.Tracker.Track(entity);
+                result.Add(entity);
+            }
 
             return result;
+        }
+
+        public List<T> GetAll(Expression<Func<T, bool>> filter)
+        {
+            var where = ExpressionSqlTranslator.Translate(filter);
+            return GetAll(where);
         }
 
         public T? GetById(int id)
@@ -40,7 +61,14 @@ namespace Apolon_ADPC.ORM.Core
             cmd.Parameters.AddWithValue("@id", id);
 
             using var reader = cmd.ExecuteReader();
-            return reader.Read() ? Map(reader) : null;
+
+            if (!reader.Read())
+                return null;
+
+            var entity = Map(reader);
+            _uow.Tracker.Track(entity);
+
+            return entity;
         }
 
         public void Insert(T entity)
@@ -140,20 +168,27 @@ namespace Apolon_ADPC.ORM.Core
             cmd.ExecuteNonQuery();
         }
 
+        public void DeleteWhere(string where)
+        {
+            var sql = $"DELETE FROM {_table} WHERE {where}";
+            using var cmd = new NpgsqlCommand(sql, _connection);
+            cmd.ExecuteNonQuery();
+        }
+
         private T Map(NpgsqlDataReader reader)
         {
             var entity = new T();
 
             foreach (var prop in typeof(T).GetProperties())
             {
-                // 🔹 PRIMARY KEY
+                // PRIMARY KEY
                 if (prop.GetCustomAttribute<PrimaryKeyAttribute>() != null)
                 {
                     prop.SetValue(entity, Convert.ToInt32(reader["id"]));
                     continue;
                 }
 
-                // 🔹 NORMAL COLUMN
+                // NORMAL COLUMN
                 var col = prop.GetCustomAttribute<ColumnAttribute>();
                 if (col == null) continue;
 

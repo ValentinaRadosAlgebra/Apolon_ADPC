@@ -11,4 +11,12 @@
     <PackageReference Include="Npgsql" Version="10.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Shema\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Apolon_ADPC\Apolon_ADPC.csproj" />
+  </ItemGroup>
+
 </Project>

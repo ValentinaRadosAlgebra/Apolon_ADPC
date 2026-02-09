@@ -25,10 +25,6 @@ namespace Apolon_ADPC.Models
 
         [Column("end_date")]
         public DateTime? EndDate { get; set; }
-
-        // Navigation properties
-        public Patient Patient { get; set; }
-        public Medication Medication { get; set; }
     }
 
     public class PrescriptionCU

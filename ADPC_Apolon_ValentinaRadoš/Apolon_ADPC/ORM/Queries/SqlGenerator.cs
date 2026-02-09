@@ -12,24 +12,24 @@ namespace Apolon_ADPC.ORM.Queries
             var tableName = EntityMapper.GetTableName(type);
             var columns = EntityMapper.GetColumns(type);
 
-            var sql = $"CREATE TABLE IF NOT EXISTS {tableName} (\n";
-            var defs = new List<string>();
+            var definitions = new List<string>();
 
             foreach (var prop in columns)
             {
                 // PRIMARY KEY
                 if (prop.GetCustomAttribute<PrimaryKeyAttribute>() != null)
                 {
-                    defs.Add("id SERIAL PRIMARY KEY");
+                    definitions.Add("id SERIAL PRIMARY KEY");
                     continue;
                 }
 
                 var col = prop.GetCustomAttribute<ColumnAttribute>();
-                var sqlType = MapType(prop.PropertyType);
+                if (col == null) continue;
 
+                var sqlType = MapType(prop.PropertyType);
                 var line = $"{col.Name} {sqlType}";
 
-                // NULL / NOT NULL
+                // NOT NULL
                 if (!col.IsNullable)
                     line += " NOT NULL";
 
@@ -41,36 +41,44 @@ namespace Apolon_ADPC.ORM.Queries
                 if (col.DefaultValue != null)
                     line += $" DEFAULT {col.DefaultValue}";
 
+                // ENUM CHECK CONSTRAINT
+                if (prop.PropertyType.IsEnum)
+                {
+                    var max = Enum.GetValues(prop.PropertyType).Length - 1;
+                    line += $" CHECK ({col.Name} BETWEEN 0 AND {max})";
+                }
+
                 // FOREIGN KEY
                 var fk = prop.GetCustomAttribute<ForeignKeyAttribute>();
                 if (fk != null)
                 {
-                    line += $" REFERENCES {fk.ReferenceTable}({fk.ReferenceColumn})";
+                    line += $" REFERENCES {fk.ReferenceTable}({fk.ReferenceColumn}) ON DELETE CASCADE";
                 }
 
-                defs.Add(line);
+                definitions.Add(line);
             }
 
-            sql += string.Join(",\n", defs);
-            sql += "\n);";
-
-            return sql;
+            return $"""
+                CREATE TABLE IF NOT EXISTS {tableName} (
+                    {string.Join(",\n    ", definitions)}
+                );
+                """;
         }
 
-        private static string MapType(Type t)
+        private static string MapType(Type type)
         {
-            var underlyingType = Nullable.GetUnderlyingType(t) ?? t;
+            var t = Nullable.GetUnderlyingType(type) ?? type;
 
-            if (underlyingType == typeof(string)) return "VARCHAR(255)";
-            if (underlyingType == typeof(int)) return "INT";
-            if (underlyingType == typeof(decimal)) return "DECIMAL";
-            if (underlyingType == typeof(float)) return "FLOAT";
-            if (underlyingType == typeof(DateTime)) return "TIMESTAMP";
-            if (underlyingType == typeof(DateOnly)) return "DATE";
-            if (underlyingType.IsEnum) return "INT";
+            if (t == typeof(string)) return "VARCHAR(255)";
+            if (t == typeof(int)) return "INT";
+            if (t == typeof(decimal)) return "DECIMAL";
+            if (t == typeof(float)) return "FLOAT";
+            if (t == typeof(double)) return "DOUBLE PRECISION";
+            if (t == typeof(DateTime)) return "TIMESTAMP";
+            if (t == typeof(bool)) return "BOOLEAN";
+            if (t.IsEnum) return "INT";
 
-            throw new Exception($"Unsupported type {t}");
+            throw new Exception($"Unsupported CLR type: {type.Name}");
         }
-
     }
 }

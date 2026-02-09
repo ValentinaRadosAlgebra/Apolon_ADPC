@@ -1,6 +1,7 @@
 ﻿using Apolon_ADPC.Models;
 using Apolon_ADPC.ORM.Core;
 using Apolon_ADPC.ORM.Queries;
+using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using System.Text.Json.Serialization;
 
@@ -15,7 +16,7 @@ var connString = builder.Configuration.GetConnectionString("ConnectionApolon");
 if (string.IsNullOrEmpty(connString))
     throw new InvalidOperationException("Connection string 'ConnectionApolon' is not set");
 
-// 🔹 RUN DDL ON STARTUP (CODE-FIRST)
+// run ddl on strart
 using (var conn = new NpgsqlConnection(connString))
 {
     conn.Open();
@@ -35,7 +36,7 @@ using (var conn = new NpgsqlConnection(connString))
     cmd.ExecuteNonQuery();
 }
 
-// 🔹 ORM usage only AFTER schema exists
+// ORM usage only AFTER schema exists
 builder.Services.AddScoped<UnitOfWork>(_ =>
     new UnitOfWork(connString)
 );
@@ -47,7 +48,8 @@ builder.Services
         o.JsonSerializerOptions.Converters.Add(
             new JsonStringEnumConverter()
         );
-    }); //for the enums
+    }); //for the enums -> how?
+
 
 var app = builder.Build();
 

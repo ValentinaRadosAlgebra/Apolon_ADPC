@@ -26,27 +26,21 @@ namespace Apolon_ADPC.Models
 
         [Column("diagnosis")]
         public string? Diagnosis { get; set; }
-
-        // Navigation property
-        public Patient Patient { get; set; }
     }
 
 
     public class CheckupCU
     {
         public int PatientId { get; set; }
-        public CheckupType Type { get; set; }
-        //public DateTime CheckupDate { get; set; }
+        public string Type { get; set; } //we validate if correct on controller
         public string? Notes { get; set; }
         public string? Diagnosis { get; set; }
     }
 
     public enum CheckupType
     {
-        PREVIOUS, //for update logic
         GP,
         BLOOD,
-        [Display(Name = "X-RAY")]
         XRAY,
         CT,
         MRI,

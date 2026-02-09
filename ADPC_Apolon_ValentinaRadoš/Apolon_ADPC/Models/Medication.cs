@@ -9,7 +9,7 @@ namespace Apolon_ADPC.Models
         [Column("id")]
         public int Id { get; set; }
 
-        [Column("name", IsNullable = false)]
+        [Column("name", IsNullable = false, IsUnique = true)]
         public string Name { get; set; }
 
         [Column("description")]

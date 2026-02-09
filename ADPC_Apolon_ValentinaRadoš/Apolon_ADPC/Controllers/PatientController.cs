@@ -22,6 +22,14 @@ namespace Apolon_ADPC.Controllers
         public IActionResult GetAll()
         {
             var patients = _uow.Patients.GetAll();
+
+            foreach (var patient in patients)
+            {
+                patient.Checkups = _uow.Checkups.GetAll(p => p.PatientId == patient.Id);
+                //patient.Checkups = _uow.Checkups.GetAll($"patient_id={patient.Id}");
+                patient.Prescriptions = _uow.Prescriptions.GetAll($"patient_id={patient.Id}");
+            }
+
             return Ok(patients);
         }
 
@@ -31,6 +39,11 @@ namespace Apolon_ADPC.Controllers
         {
             var patient = _uow.Patients.GetById(id);
             if (patient == null) return NotFound();
+
+            // Load related data //eager
+            _uow.LoadNavigation(patient, nameof(Patient.Checkups));
+            _uow.LoadNavigation(patient, nameof(Patient.Prescriptions));
+
             return Ok(patient);
         }
 
@@ -63,7 +76,7 @@ namespace Apolon_ADPC.Controllers
             _uow.Patients.Insert(patient);
             _uow.Commit();
 
-            return CreatedAtAction(nameof(GetById), new { id = patient.Id }, patient);
+            return Created("Patient created", patient);
         }
 
         // PUT: api/patient/5
@@ -124,7 +137,11 @@ namespace Apolon_ADPC.Controllers
             var existing = _uow.Patients.GetById(id);
             if (existing == null) return NotFound();
 
+            _uow.Checkups.DeleteWhere($"patient_id={id}");
+            _uow.Prescriptions.DeleteWhere($"patient_id={id}");
+
             _uow.Patients.Delete(id);
+
             _uow.Commit();
 
             return NoContent();
