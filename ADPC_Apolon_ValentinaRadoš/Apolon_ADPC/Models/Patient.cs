@@ -10,19 +10,19 @@ namespace Apolon_ADPC.Models
         public int Id { get; set; }
 
         [Column("name", IsNullable = false)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Column("surname", IsNullable = false)]
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         [Column("date_of_birth", IsNullable = false)]
         public DateTime DateOfBirth { get; set; }
 
         [Column("gender", IsNullable = false)]
-        public string Gender { get; set; }
+        public string Gender { get; set; } = string.Empty;
 
         [Column("address", IsNullable = false)]
-        public string Address { get; set; }
+        public string Address { get; set; } = string.Empty;
 
         [Column("phone")]
         public string? Phone { get; set; }
@@ -38,10 +38,10 @@ namespace Apolon_ADPC.Models
 
         // Navigation properties
         [Navigation(typeof(Checkups), "patient_id")]
-        public List<Checkups> Checkups { get; set; }
+        public List<Checkups> Checkups { get; set; } = new List<Checkups>();
 
         [Navigation(typeof(Prescription), "patient_id")]
-        public List<Prescription> Prescriptions { get; set; }
+        public List<Prescription> Prescriptions { get; set; } = new List<Prescription>();
     }
 
     public class PatientCU //create and update

@@ -6,6 +6,9 @@ var cs = "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=
 
 var runner = new MigrationRunner(cs);
 
+// Ensure the migrations table exists first
+runner.EnsureMigrationsTable();
+
 if (args.Length == 0)
 {
     Console.WriteLine("Usage: dotnet run migrate | rollback");
@@ -27,7 +30,22 @@ void SaveSnapshot(ModelSnapshot snapshot)
     File.WriteAllText(file, json);
 }
 
-switch (args[0])
+(string upPath, string downPath) SaveMigrationFiles(string name, string upSql, string downSql)
+{
+    const string folder = "Schema";
+    if (!Directory.Exists(folder))
+        Directory.CreateDirectory(folder);
+
+    string upFile = Path.Combine(folder, $"{name}_up.sql");
+    string downFile = Path.Combine(folder, $"{name}_down.sql");
+
+    File.WriteAllText(upFile, upSql);
+    File.WriteAllText(downFile, downSql);
+
+    return (upFile, downFile);
+}
+
+switch (args[0].ToLower())
 {
     case "migrate":
         {
@@ -45,27 +63,42 @@ switch (args[0])
             // Generate migration SQL
             var (upSql, downSql) = MigrationDiff.GenerateSql(oldSnap, newSnap);
 
-            // Create a Migration object dynamically
+            if (string.IsNullOrWhiteSpace(upSql))
+            {
+                Console.WriteLine("No schema changes detected. No migration created.");
+                return;
+            }
+
+            // Save SQL files in Schema/
+            var migrationName = $"AutoMigration_{DateTime.Now:yyyyMMdd_HHmmss}";
+            var (upFilePath, downFilePath) = SaveMigrationFiles(migrationName, upSql, downSql);
+
+            //create migration object
             var migration = new Migration
             {
-                Name = $"AutoMigration_{DateTime.Now:yyyyMMdd_HHmmss}",
-                UpSql = upSql,
-                DownSql = downSql
+                Name = migrationName,
+                UpFile = upFilePath,
+                DownFile = downFilePath
             };
 
-            // Apply migration
+            // Apply migration **after migration object exists**
             runner.Apply(migration);
 
-            // Save new snapshot for next run
+            // Save snapshot for next run
             SaveSnapshot(newSnap);
 
             Console.WriteLine("Migrations applied");
             break;
         }
 
-
     case "rollback":
         runner.RollbackLast();
+        if (File.Exists("snapshot.json"))
+            File.Delete("snapshot.json");
         Console.WriteLine("Rolled back last migration");
+        break;
+
+    default:
+        Console.WriteLine("Unknown command. Use migrate or rollback.");
         break;
 }

@@ -32,6 +32,8 @@ namespace Apolon_ADPC.ORM.Core
         //public void Commit() => _tx.Commit();
         public void Rollback() => _tx.Rollback();
 
+        public NpgsqlTransaction Transaction => _tx;
+
         public void Dispose() => _manager.Dispose();
 
         public void LoadNavigation(object entity, string propertyName)

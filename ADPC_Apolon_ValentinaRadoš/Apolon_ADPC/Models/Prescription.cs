@@ -18,7 +18,7 @@ namespace Apolon_ADPC.Models
         public int MedicationId { get; set; }
 
         [Column("dosage", IsNullable = false)]
-        public string Dosage { get; set; }
+        public string Dosage { get; set; } = string.Empty;
 
         [Column("start_date", IsNullable = false)]
         public DateTime StartDate { get; set; }

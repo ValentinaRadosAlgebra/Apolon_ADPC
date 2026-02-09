@@ -18,12 +18,23 @@ namespace Apolon_ADPC.ORM.Mapping
                                 || p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
         }
 
+        //public static IEnumerable<(PropertyInfo Property, ColumnAttribute Column)>GetInsertableColumns(Type type)
+        //{
+        //    return type.GetProperties()
+        //        .Where(p => p.GetCustomAttribute<PrimaryKeyAttribute>() == null)
+        //        .Select(p => (Property: p, Column: p.GetCustomAttribute<ColumnAttribute>()))
+        //        .Where(t =>
+        //            t.Column != null &&
+        //            t.Column.DefaultValue == null
+        //        );
+        //}
+
         public static IEnumerable<(PropertyInfo Property, ColumnAttribute Column)> GetInsertableColumns(Type type)
         {
             return type.GetProperties()
-                       .Where(p => p.GetCustomAttribute<PrimaryKeyAttribute>() == null)
-                       .Select(p => (Property: p, Column: p.GetCustomAttribute<ColumnAttribute>()))
-                       .Where(t => t.Column != null);
+                .Where(p => p.GetCustomAttribute<PrimaryKeyAttribute>() == null) // skip PK
+                .Select(p => (Property: p, Column: p.GetCustomAttribute<ColumnAttribute>()))
+                .Where(t => t.Column != null); // remove the DefaultValue filter
         }
     }
 }

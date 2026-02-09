@@ -33,7 +33,7 @@ namespace Apolon_ADPC.ORM.Core
             if (where != null) sql += $" WHERE {where}";
             if (orderBy != null) sql += $" ORDER BY {orderBy}";
 
-            using var cmd = new NpgsqlCommand(sql, _connection);
+            using var cmd = new NpgsqlCommand(sql, _connection, _uow.Transaction);
             using var reader = cmd.ExecuteReader();
 
             var result = new List<T>();
@@ -57,7 +57,7 @@ namespace Apolon_ADPC.ORM.Core
         public T? GetById(int id)
         {
             var sql = $"SELECT * FROM {_table} WHERE id=@id";
-            using var cmd = new NpgsqlCommand(sql, _connection);
+            using var cmd = new NpgsqlCommand(sql, _connection, _uow.Transaction);
             cmd.Parameters.AddWithValue("@id", id);
 
             using var reader = cmd.ExecuteReader();
@@ -78,14 +78,13 @@ namespace Apolon_ADPC.ORM.Core
             var names = columns.Select(c => c.Column.Name);
             var parms = columns.Select(c => "@" + c.Column.Name);
 
-            // Add RETURNING id to get generated PK
             var sql = $"""
-                    INSERT INTO {_table} ({string.Join(",", names)})
-                    VALUES ({string.Join(",", parms)})
-                    RETURNING id
-                """;
+        INSERT INTO {_table} ({string.Join(",", names)})
+        VALUES ({string.Join(",", parms)})
+        RETURNING id
+    """;
 
-            using var cmd = new NpgsqlCommand(sql, _connection);
+            using var cmd = new NpgsqlCommand(sql, _connection, _uow.Transaction);
 
             foreach (var c in columns)
             {
@@ -108,15 +107,22 @@ namespace Apolon_ADPC.ORM.Core
                 cmd.Parameters.AddWithValue("@" + c.Column.Name, value);
             }
 
-            // Get the generated id
+            // execute + read generated PK
             var idObj = cmd.ExecuteScalar();
-            if (idObj == null) throw new Exception("Failed to retrieve generated ID");
 
+            if (idObj == null || idObj == DBNull.Value)
+                throw new Exception(
+                    $"Insert into {_table} did not return a generated id. Check schema and defaults."
+                );
+
+            // find PK property dynamically
             var pkProp = typeof(T).GetProperties()
                 .FirstOrDefault(p => p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
 
-            if (pkProp != null)
-                pkProp.SetValue(entity, Convert.ToInt32(idObj));
+            if (pkProp == null)
+                throw new Exception($"Entity {typeof(T).Name} has no PrimaryKey attribute");
+
+            pkProp.SetValue(entity, Convert.ToInt32(idObj));
         }
 
 
@@ -132,7 +138,7 @@ namespace Apolon_ADPC.ORM.Core
                 WHERE id=@id
             """;
 
-            using var cmd = new NpgsqlCommand(sql, _connection);
+            using var cmd = new NpgsqlCommand(sql, _connection, _uow.Transaction);
 
             foreach (var c in columns)
             {
@@ -171,7 +177,7 @@ namespace Apolon_ADPC.ORM.Core
         public void DeleteWhere(string where)
         {
             var sql = $"DELETE FROM {_table} WHERE {where}";
-            using var cmd = new NpgsqlCommand(sql, _connection);
+            using var cmd = new NpgsqlCommand(sql, _connection, _uow.Transaction);
             cmd.ExecuteNonQuery();
         }
 

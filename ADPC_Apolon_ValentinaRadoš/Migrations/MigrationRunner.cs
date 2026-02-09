@@ -12,7 +12,18 @@ namespace Migrations
             _conn = new NpgsqlConnection(cs);
             _conn.Open();
         }
+        public void EnsureMigrationsTable()
+        {
+            var sql = @"
+                CREATE TABLE IF NOT EXISTS migrations (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(255) UNIQUE,
+                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );";
 
+            using var cmd = new NpgsqlCommand(sql, _conn);
+            cmd.ExecuteNonQuery();
+        }
         public void Apply(Migration m)
         {
             using var tx = _conn.BeginTransaction();
