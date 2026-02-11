@@ -29,10 +29,9 @@ namespace Apolon_ADPC.ORM.Core
             Prescriptions = new DbSet<Prescription>(_manager.Connection, this);
         }
 
-        //public void Commit() => _tx.Commit();
         public void Rollback() => _tx.Rollback();
 
-        public NpgsqlTransaction Transaction => _tx;
+        public NpgsqlTransaction Transaction => _tx;// Exposes the current transaction so DbSet commands can execute inside it
 
         public void Dispose() => _manager.Dispose();
 
@@ -58,7 +57,7 @@ namespace Apolon_ADPC.ORM.Core
 
             var fkValue = fkProp.GetValue(entity);
 
-            // FIX: find the property of type DbSet<targetType>
+            // find the property of type DbSet<targetType>
             var dbSetInstanceProp = this.GetType()
                 .GetProperties()
                 .FirstOrDefault(p => p.PropertyType.IsGenericType

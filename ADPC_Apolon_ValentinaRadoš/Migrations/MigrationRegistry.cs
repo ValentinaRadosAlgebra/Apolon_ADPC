@@ -16,11 +16,11 @@ namespace Migrations
                 if (!Directory.Exists(folder))
                     yield break;
 
-                foreach (var upFile in Directory.GetFiles(folder, "*_up.sql"))
+                foreach (var upFile in Directory.GetFiles(folder, "*_up.sql"))//get all up
                 {
                     var name = Path.GetFileName(upFile).Replace("_up.sql", "");
-                    var downFile = Path.Combine(folder, $"{name}_down.sql");
-                    yield return new Migration
+                    var downFile = Path.Combine(folder, $"{name}_down.sql"); //get all down
+                    yield return new Migration //create migration
                     {
                         Name = name,
                         UpFile = upFile,

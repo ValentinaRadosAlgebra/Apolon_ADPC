@@ -17,24 +17,25 @@ if (string.IsNullOrEmpty(connString))
     throw new InvalidOperationException("Connection string 'ConnectionApolon' is not set");
 
 // run ddl on strart
-using (var conn = new NpgsqlConnection(connString))
-{
-    conn.Open();
+//using (var conn = new NpgsqlConnection(connString))
+//{
+//    conn.Open();
 
-    using var cmd = conn.CreateCommand();
+//    using var cmd = conn.CreateCommand();
 
-    cmd.CommandText = SqlGenerator.GenerateCreateTable<Patient>();
-    cmd.ExecuteNonQuery();
+//    cmd.CommandText = SqlGenerator.GenerateCreateTable<Patient>();
+//    cmd.ExecuteNonQuery();
 
-    cmd.CommandText = SqlGenerator.GenerateCreateTable<Medication>();
-    cmd.ExecuteNonQuery();
+//    cmd.CommandText = SqlGenerator.GenerateCreateTable<Medication>();
+//    cmd.ExecuteNonQuery();
 
-    cmd.CommandText = SqlGenerator.GenerateCreateTable<Checkups>();
-    cmd.ExecuteNonQuery();
+//    cmd.CommandText = SqlGenerator.GenerateCreateTable<Checkups>();
+//    cmd.ExecuteNonQuery();
 
-    cmd.CommandText = SqlGenerator.GenerateCreateTable<Prescription>();
-    cmd.ExecuteNonQuery();
-}
+//    cmd.CommandText = SqlGenerator.GenerateCreateTable<Prescription>();
+//    cmd.ExecuteNonQuery();
+
+//}
 
 // ORM usage only AFTER schema exists
 builder.Services.AddScoped<UnitOfWork>(_ =>
@@ -48,7 +49,7 @@ builder.Services
         o.JsonSerializerOptions.Converters.Add(
             new JsonStringEnumConverter()
         );
-    }); //for the enums -> how?
+    }); //for the enums
 
 
 var app = builder.Build();

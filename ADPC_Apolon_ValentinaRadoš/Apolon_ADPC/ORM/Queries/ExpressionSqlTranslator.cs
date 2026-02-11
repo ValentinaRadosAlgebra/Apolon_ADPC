@@ -14,22 +14,22 @@ namespace Apolon_ADPC.ORM.Queries
             string columnName;
             object value;
 
-            if (body.Left is MemberExpression leftMember)
+            if (body.Left is MemberExpression leftMember)//Extract left side (column)
             {
                 var prop = typeof(T).GetProperty(leftMember.Member.Name);
-                var colAttr = prop?.GetCustomAttribute<ColumnAttribute>();
+                var colAttr = prop?.GetCustomAttribute<ColumnAttribute>();//checks if column
                 columnName = colAttr?.Name ?? prop?.Name.ToLower() ?? throw new Exception("Cannot determine column name");
             }
             else
                 throw new NotSupportedException("Left side must be a member");
 
-            switch (body.Right)
+            switch (body.Right)//Extract right side(value)
             {
-                case ConstantExpression constExpr:
+                case ConstantExpression constExpr: //x => x.Age == 25
                     value = constExpr.Value;
                     break;
 
-                case MemberExpression memberExpr:
+                case MemberExpression memberExpr: //x => x.Age == someVariable
                     var objectMember = Expression.Convert(memberExpr, typeof(object));
                     var getterLambda = Expression.Lambda<Func<object>>(objectMember);
                     value = getterLambda.Compile()();
@@ -41,7 +41,7 @@ namespace Apolon_ADPC.ORM.Queries
 
             string formattedValue = value is string ? $"'{value}'" : value.ToString();
 
-            return $"{columnName} = {formattedValue}";
+            return $"{columnName} = {formattedValue}"; //builds the final SQL WHERE condition string
         }
     }
 }

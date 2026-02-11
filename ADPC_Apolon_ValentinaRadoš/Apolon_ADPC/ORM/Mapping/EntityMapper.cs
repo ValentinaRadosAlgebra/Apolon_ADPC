@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Apolon_ADPC.ORM.Mapping
 {
-    public static class EntityMapper
+    public static class EntityMapper //helper that maps classes to db table
     {
         public static string GetTableName(Type type)
         {
@@ -18,23 +18,16 @@ namespace Apolon_ADPC.ORM.Mapping
                                 || p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
         }
 
-        //public static IEnumerable<(PropertyInfo Property, ColumnAttribute Column)>GetInsertableColumns(Type type)
-        //{
-        //    return type.GetProperties()
-        //        .Where(p => p.GetCustomAttribute<PrimaryKeyAttribute>() == null)
-        //        .Select(p => (Property: p, Column: p.GetCustomAttribute<ColumnAttribute>()))
-        //        .Where(t =>
-        //            t.Column != null &&
-        //            t.Column.DefaultValue == null
-        //        );
-        //}
-
         public static IEnumerable<(PropertyInfo Property, ColumnAttribute Column)> GetInsertableColumns(Type type)
         {
             return type.GetProperties()
-                .Where(p => p.GetCustomAttribute<PrimaryKeyAttribute>() == null) // skip PK
-                .Select(p => (Property: p, Column: p.GetCustomAttribute<ColumnAttribute>()))
-                .Where(t => t.Column != null); // remove the DefaultValue filter
+                .Where(p => p.GetCustomAttribute<PrimaryKeyAttribute>() == null) // skip PK, bc autoincrement
+                .Select(p =>
+                {
+                    var colAttr = p.GetCustomAttribute<ColumnAttribute>();
+                    return (Property: p, Column: colAttr);//property - entity, column - sql
+                })
+                .Where(t => t.Column != null); // only include properties with [Column]
         }
     }
 }

@@ -66,16 +66,36 @@ namespace Migrations
 
         private static string GenerateColumnSql(ColumnSnapshot col)
         {
-            var parts = new List<string>
-        {
-            col.Name,
-            col.Type,
-            col.IsNullable ? "NULL" : "NOT NULL"
-        };
 
-            if (col.IsPrimaryKey) parts.Add("PRIMARY KEY");
+            if (col.IsPrimaryKey)
+            {
+                return $"{col.Name} SERIAL PRIMARY KEY"; // always NOT NULL, no extra NULL/NOT NULL
+            }
+
+            var parts = new List<string>
+            {
+                col.Name,
+                col.Type,
+                col.IsNullable ? "NULL" : "NOT NULL"
+            };
+
             if (col.IsUnique) parts.Add("UNIQUE");
-            if (!string.IsNullOrEmpty(col.Default)) parts.Add($"DEFAULT {col.Default}");
+
+            if (col.Default != null)
+            {
+                string defaultSql = col.Default switch
+                {
+                    string s => s,
+                    bool b => b ? "TRUE" : "FALSE",
+                    int or long or float or double or decimal => col.Default.ToString(),
+                    _ => throw new Exception($"Unsupported default value type: {col.Default.GetType().Name}")
+                };
+
+                parts.Add($"DEFAULT {defaultSql}");
+            }
+
+            if (!string.IsNullOrEmpty(col.ForeignKeyTable))
+                parts.Add($"REFERENCES {col.ForeignKeyTable}({col.ForeignKeyColumn}) ON DELETE CASCADE");
 
             return string.Join(" ", parts);
         }

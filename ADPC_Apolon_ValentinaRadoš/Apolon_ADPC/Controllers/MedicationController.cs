@@ -43,7 +43,7 @@ namespace Apolon_ADPC.Controllers
             {
                 var exists = _uow.Medications
                     .GetAll($"name='{model.Name}'")
-                    .Any();
+                    .Any(); //check for duplicates
 
                 if (exists)
                     return BadRequest(new { message = "Medication already exists" });
@@ -79,7 +79,7 @@ namespace Apolon_ADPC.Controllers
             {
                 var exists = _uow.Medications
                     .GetAll($"name='{model.Name}'")
-                    .Any();
+                    .Any();//check for duplicates
 
                 if (exists)
                     return BadRequest(new { message = "Medication already exists" });
@@ -107,7 +107,7 @@ namespace Apolon_ADPC.Controllers
             var existing = _uow.Medications.GetById(id);
             if (existing == null) return NotFound();
 
-            var isInPrescription = _uow.Prescriptions.GetAll($"medication_id={id}").Any();
+            var isInPrescription = _uow.Prescriptions.GetAll(p => p.MedicationId == existing.Id).Any();
             if (isInPrescription)
                 return BadRequest(new { message = "Cannot delete medication. It is referenced in a prescription." });
 

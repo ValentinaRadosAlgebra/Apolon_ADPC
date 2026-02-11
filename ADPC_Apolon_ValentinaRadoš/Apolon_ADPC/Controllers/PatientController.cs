@@ -26,9 +26,8 @@ namespace Apolon_ADPC.Controllers
             foreach (var patient in patients)
             {
                 patient.Checkups = _uow.Checkups.GetAll(p => p.PatientId == patient.Id);
-                //patient.Checkups = _uow.Checkups.GetAll($"patient_id={patient.Id}");
-                patient.Prescriptions = _uow.Prescriptions.GetAll($"patient_id={patient.Id}");
-            }
+                patient.Prescriptions = _uow.Prescriptions.GetAll(p => p.PatientId == patient.Id);
+            }// manual lazy loading, can cause the N+1 query problem
 
             return Ok(patients);
         }
@@ -40,7 +39,7 @@ namespace Apolon_ADPC.Controllers
             var patient = _uow.Patients.GetById(id);
             if (patient == null) return NotFound();
 
-            // Load related data //eager
+            // manual eager - loaded explicitly before returning
             _uow.LoadNavigation(patient, nameof(Patient.Checkups));
             _uow.LoadNavigation(patient, nameof(Patient.Prescriptions));
 
@@ -53,9 +52,9 @@ namespace Apolon_ADPC.Controllers
         {
             if (model == null) return BadRequest();
 
-            if (!string.IsNullOrEmpty(model.Email))
+            if (!string.IsNullOrEmpty(model.Email)) //check duplicates if not ull
             {
-                var exists = _uow.Patients.GetAll($"email='{model.Email}'").Any();
+                var exists = _uow.Patients.GetAll(p => p.Email == model.Email).Any();
                 if (exists)
                     return BadRequest(new { message = "Email already exists" });
             }
@@ -90,7 +89,7 @@ namespace Apolon_ADPC.Controllers
 
             if (!string.IsNullOrEmpty(model.Email) && model.Email != existing.Email)
             {
-                var exists = _uow.Patients.GetAll($"email='{model.Email}'").Any();
+                var exists = _uow.Patients.GetAll(p => p.Email == model.Email).Any();
                 if (exists)
                     return BadRequest(new { message = "Email already exists" });
             }
@@ -103,8 +102,8 @@ namespace Apolon_ADPC.Controllers
 
 
             var birthDate = model.DateOfBirth.Kind == DateTimeKind.Utc
-                ? model.DateOfBirth.ToLocalTime().Date
-                : model.DateOfBirth.Date;
+                ? model.DateOfBirth.ToLocalTime().Date //normalize the date so that it matches your local date context and remove time info
+                : model.DateOfBirth.Date; 
 
             if (birthDate != DateTime.Today)
                 existing.DateOfBirth = birthDate;

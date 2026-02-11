@@ -1,8 +1,19 @@
 ﻿using Apolon_ADPC.Models;
+using Microsoft.Extensions.Configuration;
 using Migrations;
 using System.Text.Json;
 
-var cs = "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=password";
+//var cs = "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=password";
+var config = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddEnvironmentVariables()
+    .Build();
+
+var cs = config.GetConnectionString("ConnectionApolon");
+
+if (string.IsNullOrWhiteSpace(cs))
+    throw new Exception("Connection string 'ConnectionApolon' not found");
 
 var runner = new MigrationRunner(cs);
 
@@ -32,7 +43,7 @@ void SaveSnapshot(ModelSnapshot snapshot)
 
 (string upPath, string downPath) SaveMigrationFiles(string name, string upSql, string downSql)
 {
-    const string folder = "Schema";
+    const string folder = "AutoMigrations";
     if (!Directory.Exists(folder))
         Directory.CreateDirectory(folder);
 
@@ -69,7 +80,7 @@ switch (args[0].ToLower())
                 return;
             }
 
-            // Save SQL files in Schema/
+            // Save SQL files in AutoMigrations/
             var migrationName = $"AutoMigration_{DateTime.Now:yyyyMMdd_HHmmss}";
             var (upFilePath, downFilePath) = SaveMigrationFiles(migrationName, upSql, downSql);
 
@@ -81,7 +92,7 @@ switch (args[0].ToLower())
                 DownFile = downFilePath
             };
 
-            // Apply migration **after migration object exists**
+            // Apply migration -> after migration object exists
             runner.Apply(migration);
 
             // Save snapshot for next run

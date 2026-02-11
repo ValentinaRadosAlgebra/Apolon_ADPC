@@ -4,9 +4,9 @@ namespace Apolon_ADPC.ORM.Tracking
 {
     public class ChangeTracker
     {
-        private readonly List<TrackedEntity> _tracked = new();
+        private readonly List<TrackedEntity> _tracked = new(); //entities currently tracked
 
-        public void Track(object entity)
+        public void Track(object entity) //shows which entity to track and save original values in snapshot
         {
             var snapshot = new TrackedEntity
             {
@@ -19,7 +19,7 @@ namespace Apolon_ADPC.ORM.Tracking
             _tracked.Add(snapshot);
         }
 
-        public IEnumerable<(object Entity, List<string> ChangedProps)> DetectChanges()
+        public IEnumerable<(object Entity, List<string> ChangedProps)> DetectChanges()//compares the current object with its original snapshot.
         {
             foreach (var tracked in _tracked)
             {

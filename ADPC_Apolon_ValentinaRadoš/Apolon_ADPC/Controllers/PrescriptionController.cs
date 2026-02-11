@@ -94,7 +94,7 @@ namespace Apolon_ADPC.Controllers
             if (!string.IsNullOrWhiteSpace(model.Dosage) && model.Dosage != "string")
                 existing.Dosage = model.Dosage;
 
-            if (model.EndDate.HasValue)
+            if (model.EndDate.HasValue) //if input
             {
                 var endDate = model.EndDate.Value.Kind == DateTimeKind.Utc
                     ? model.EndDate.Value.ToLocalTime().Date

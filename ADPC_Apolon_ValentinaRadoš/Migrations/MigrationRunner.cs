@@ -3,7 +3,7 @@
 
 namespace Migrations
 {
-    public class MigrationRunner
+    public class MigrationRunner //Opens db connection, create migration table, apply migrations(UP), rollback las migration (DOWN)
     {
         private readonly NpgsqlConnection _conn;
 
@@ -12,7 +12,7 @@ namespace Migrations
             _conn = new NpgsqlConnection(cs);
             _conn.Open();
         }
-        public void EnsureMigrationsTable()
+        public void EnsureMigrationsTable() //make sure migration exists
         {
             var sql = @"
                 CREATE TABLE IF NOT EXISTS migrations (
@@ -24,34 +24,34 @@ namespace Migrations
             using var cmd = new NpgsqlCommand(sql, _conn);
             cmd.ExecuteNonQuery();
         }
-        public void Apply(Migration m)
+        public void Apply(Migration m) //applies one migration
         {
             using var tx = _conn.BeginTransaction();
 
-            new NpgsqlCommand(m.UpSql, _conn).ExecuteNonQuery();
+            new NpgsqlCommand(m.UpSql, _conn).ExecuteNonQuery(); //execute up
 
             var cmd = new NpgsqlCommand(
                 "INSERT INTO migrations(name) VALUES(@n)", _conn);
             cmd.Parameters.AddWithValue("@n", m.Name);
-            cmd.ExecuteNonQuery();
+            cmd.ExecuteNonQuery(); //update migrations table
 
-            tx.Commit();
+            tx.Commit();//finalize changes
         }
 
-        public void RollbackLast()
+        public void RollbackLast() //reverses the most recently applied migration
         {
             var get = new NpgsqlCommand(
-                "SELECT name FROM migrations ORDER BY id DESC LIMIT 1", _conn);
+                "SELECT name FROM migrations ORDER BY id DESC LIMIT 1", _conn); //get last migration
 
             var name = (string?)get.ExecuteScalar();
             if (name == null) return;
 
-            var migration = LoadMigration(name);
-            new NpgsqlCommand(migration.DownSql, _conn).ExecuteNonQuery();
+            var migration = LoadMigration(name); //load down
+            new NpgsqlCommand(migration.DownSql, _conn).ExecuteNonQuery();//execute
 
             new NpgsqlCommand(
                 "DELETE FROM migrations WHERE name=@n", _conn)
-            { Parameters = { new("@n", name) } }.ExecuteNonQuery();
+            { Parameters = { new("@n", name) } }.ExecuteNonQuery(); //remove record
         }
 
         private Migration LoadMigration(string name)

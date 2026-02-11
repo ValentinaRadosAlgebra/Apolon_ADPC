@@ -11,8 +11,4 @@
 	  <PackageReference Include="Npgsql" Version="10" />
   </ItemGroup>
 
-  <ItemGroup>
-	  <Folder Include="ORM\Migration\" />
-  </ItemGroup>
-
 </Project>

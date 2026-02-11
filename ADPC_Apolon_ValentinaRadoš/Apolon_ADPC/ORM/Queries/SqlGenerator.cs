@@ -26,7 +26,7 @@ namespace Apolon_ADPC.ORM.Queries
                 var col = prop.GetCustomAttribute<ColumnAttribute>();
                 if (col == null) continue;
 
-                var sqlType = MapType(prop.PropertyType);
+                var sqlType = MapType(prop.PropertyType, col, prop);
                 var line = $"{col.Name} {sqlType}";
 
                 // NOT NULL
@@ -39,7 +39,19 @@ namespace Apolon_ADPC.ORM.Queries
 
                 // DEFAULT
                 if (col.DefaultValue != null)
-                    line += $" DEFAULT {col.DefaultValue}";
+                {
+                    // Convert object to SQL literal
+                    string defaultSql;
+
+                    if (col.DefaultValue is string s)
+                        defaultSql = s; // assume user provides proper SQL (like CURRENT_TIMESTAMP)
+                    else if (col.DefaultValue is bool b)
+                        defaultSql = b ? "TRUE" : "FALSE";
+                    else
+                        defaultSql = col.DefaultValue.ToString()!; // numbers, etc.
+
+                    line += $" DEFAULT {defaultSql}";
+                }
 
                 // ENUM CHECK CONSTRAINT
                 if (prop.PropertyType.IsEnum)
@@ -65,9 +77,12 @@ namespace Apolon_ADPC.ORM.Queries
                 """;
         }
 
-        private static string MapType(Type type)
+        private static string MapType(Type type, ColumnAttribute col, PropertyInfo prop)
         {
             var t = Nullable.GetUnderlyingType(type) ?? type;
+
+            if (prop.GetCustomAttribute<PrimaryKeyAttribute>() != null && t == typeof(int))
+                return "SERIAL"; // PK is always SERIAL
 
             if (t == typeof(string)) return "VARCHAR(255)";
             if (t == typeof(int)) return "INT";

@@ -46,12 +46,12 @@ namespace Apolon_ADPC.Controllers
             if (!Enum.TryParse<CheckupType>(model.Type, ignoreCase: true, out var type))
             {
                 return BadRequest(new { message = "Invalid checkup type" });
-            }
+            } //checks if string checkup type exists in enum 
 
             var checkup = new Checkups
             {
                 PatientId = model.PatientId,
-                Type = type, //no Previous and if not type givenBadRequest
+                Type = type,
                 CheckupDate = DateTime.Now,
                 Notes = string.IsNullOrWhiteSpace(model.Notes) || model.Notes == "string"
                     ? null
@@ -76,9 +76,9 @@ namespace Apolon_ADPC.Controllers
             var existing = _uow.Checkups.GetById(id);
             if (existing == null) return NotFound();
 
-            if (model.PatientId > 0 && model.PatientId != existing.PatientId)
+            if (model.PatientId > 0 && model.PatientId != existing.PatientId) //if changed
             {
-                var patientExists = _uow.Patients.GetById(model.PatientId) != null;
+                var patientExists = _uow.Patients.GetById(model.PatientId) != null; //if patient exists
                 if (!patientExists)
                     return BadRequest(new { message = "Patient does not exist" });
 
